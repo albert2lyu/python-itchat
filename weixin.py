@@ -67,7 +67,7 @@ def make_all_friends_img(image_list,width=120,height=120,save_name=''all_friend.
     toImage = Image.new('RGBA', (width * n, height * n))
     for y in range(0,n):
         for x in range(0,n):
-            print x*width,y*height
+            # print x*width,y*height
             fromImage = Image.open(image_list.pop())
             fromImage =fromImage.resize((width,height), Image.ANTIALIAS)
             toImage.paste(fromImage, (x*width, y*height))
