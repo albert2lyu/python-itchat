@@ -1,2 +1,2 @@
 # python-itchat
-基于itchat的python微信个人项目
+基于[itchat](http://itchat.readthedocs.io/zh/latest) 的python微信个人项目
