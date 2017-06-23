@@ -28,16 +28,16 @@ def text_reply(msg):
 def text_reply(msg):
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    if msg['User']['PYQuanPin'] == 'tiankongzhicheng':
+    if msg['User']['PYQuanPin'] == 'tiankongzhicheng' or  msg['User']['PYQuanPin'] == 'zhangsongsong':
         f = open('msg.info', 'a')
         info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + msg['User']['RemarkName'] + " : " + str(msg['Text']) + msg.get('Url', '') + "\n"
         f.write(info)
         f.close()
         logging.info(info)
-    # 请求图灵机器人 获取要回复的内容
-    text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
-    # 发送给用户
-    itchat.send(text, msg['FromUserName'])
+        # 请求图灵机器人 获取要回复的内容
+        text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
+        # 发送给用户
+        itchat.send(text, msg['FromUserName'])
 
 
 # 在注册时增加isGroupChat=True将判定为群聊回复
@@ -87,7 +87,7 @@ codes_map = {
 
 
 # 向图灵机器人发送请求 获取结果
-def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='去图灵机器人官网申请'):
+def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='0ee53f65c46a4206a5b049f1eda674c8'):
     res = requests.post(url, json={'key': key, 'userid': userid, 'info': info})
     if res.status_code == 200:
         data = res.json()
