@@ -34,10 +34,10 @@ def text_reply(msg):
         f.write(info)
         f.close()
         logging.info(info)
-        # 请求图灵机器人 获取要回复的内容
-        text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
-        # 发送给用户
-        itchat.send(text, msg['FromUserName'])
+    # 请求图灵机器人 获取要回复的内容
+    text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
+    # 发送给用户
+    itchat.send(text, msg['FromUserName'])
 
 
 # 在注册时增加isGroupChat=True将判定为群聊回复
@@ -61,8 +61,19 @@ def download_files(msg):
 
 
 # 拼接合成好友头像
-def make_all_friends_img(picDir='friends'):
-    pass
+def make_all_friends_img(image_list,width=120,height=120,save_name=''all_friend.jpg''):
+    images_count = len(image_list)
+    n = int(math.ceil(pow(images_count, 0.5)))
+    toImage = Image.new('RGBA', (width * n, height * n))
+    for y in range(0,n):
+        for x in range(0,n):
+            print x*width,y*height
+            fromImage = Image.open(image_list.pop())
+            fromImage =fromImage.resize((width,height), Image.ANTIALIAS)
+            toImage.paste(fromImage, (x*width, y*height))
+            if len(image_list) == 0:
+                toImage.save(save_name)
+                return
 
 
 # 获取所以好友头像
@@ -87,7 +98,7 @@ codes_map = {
 
 
 # 向图灵机器人发送请求 获取结果
-def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='0ee53f65c46a4206a5b049f1eda674c8'):
+def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='key图灵机器人官网获取'):
     res = requests.post(url, json={'key': key, 'userid': userid, 'info': info})
     if res.status_code == 200:
         data = res.json()
@@ -119,6 +130,5 @@ def response_handle(**kw):
 
     return res_str
 
-
-itchat.auto_login(loginCallback=None)
+itchat.auto_login(loginCallback=get_all_friends_img) #登录成功回调获取所有用户头像拼接下载
 itchat.run()
