@@ -1,43 +1,45 @@
-# -*- coding:utf-8 -*-
 import os
-import sys
 import time
 import requests
 import logging
 import itchat
 from itchat.content import *
 
+autoDict = {'zhangsongsong': True,  'tiankongzhicheng': True}
+autoUserNames = {}
+
+
 # 通过下面的方式进行简单配置输出方式与日志级别
 logging.basicConfig(filename='logger.log', level=logging.INFO)
 
 # 注册地图 名片 通知 分享信息 回复方法
+
+
 @itchat.msg_register([MAP, CARD, NOTE, SHARING])
 def text_reply(msg):
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-    if msg['User']['PYQuanPin'] == 'tiankongzhicheng':
+    if autoUserNames.has_key(msg['FromUserName']):
         f = open('msg.js', 'a')
-        info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + msg['User']['RemarkName'] + " : " + str(msg['Text']) + msg.get('Url', '') + "\n"
+        info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + \
+            autoUserNames[msg['FromUserName']] + " : " + \
+            str(msg['Text']) + msg.get('Url', '') + "\n"
         f.write(info)
         f.close()
         logging.info(info)
     # itchat.send('%s: %s' % (msg['Type'], msg['Text']), msg['FromUserName'])
 
 # 注册文本信息 回复方法
-@itchat.msg_register([TEXT])
+
+
+@itchat.msg_register(TEXT)
 def text_reply(msg):
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-    if msg['User']['PYQuanPin'] == 'tiankongzhicheng' or  msg['User']['PYQuanPin'] == 'zhangsongsong':
-        f = open('msg.info', 'a')
-        info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + msg['User']['RemarkName'] + " : " + str(msg['Text']) + msg.get('Url', '') + "\n"
-        f.write(info)
-        f.close()
-        logging.info(info)
-    # 请求图灵机器人 获取要回复的内容
-    text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
-    # 发送给用户
-    itchat.send(text, msg['FromUserName'])
+    if autoUserNames.get(msg['FromUserName']):
+        info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + \
+            autoUserNames[msg['FromUserName']] + " : " + \
+            str(msg['Text']) + msg.get('Url', '') + "\n"
+        with open('msg.info', 'a', encoding='utf-8') as f:
+                f.write(info)
+        text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
+        itchat.send(text, msg['FromUserName'])
 
 
 # 在注册时增加isGroupChat=True将判定为群聊回复
@@ -61,16 +63,16 @@ def download_files(msg):
 
 
 # 拼接合成好友头像
-def make_all_friends_img(image_list,width=120,height=120,save_name=''all_friend.jpg''):
+def make_all_friends_img(image_list, width=120, height=120, save_name='all_friend.jpg'):
     images_count = len(image_list)
     n = int(math.ceil(pow(images_count, 0.5)))
     toImage = Image.new('RGBA', (width * n, height * n))
-    for y in range(0,n):
-        for x in range(0,n):
-            # print x*width,y*height
+    for y in range(0, n):
+        for x in range(0, n):
+            print(x * width, y * height)
             fromImage = Image.open(image_list.pop())
-            fromImage =fromImage.resize((width,height), Image.ANTIALIAS)
-            toImage.paste(fromImage, (x*width, y*height))
+            fromImage = fromImage.resize((width, height), Image.ANTIALIAS)
+            toImage.paste(fromImage, (x * width, y * height))
             if len(image_list) == 0:
                 toImage.save(save_name)
                 return
@@ -98,7 +100,7 @@ codes_map = {
 
 
 # 向图灵机器人发送请求 获取结果
-def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='key图灵机器人官网获取'):
+def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='d0ee53f65c46a4206a5b049f1eda674c8'):
     res = requests.post(url, json={'key': key, 'userid': userid, 'info': info})
     if res.status_code == 200:
         data = res.json()
@@ -130,5 +132,26 @@ def response_handle(**kw):
 
     return res_str
 
-itchat.auto_login(loginCallback=get_all_friends_img) #登录成功回调获取所有用户头像拼接下载
+
+def get_rooms_info():
+    for i, friend in enumerate(itchat.get_chatrooms()):
+        logging.info(friend)
+
+
+def get_auto_friends_username():
+    for i, friend in enumerate(itchat.get_friends()):
+        if autoDict.get(friend['PYQuanPin']):
+            autoUserNames[friend['UserName']] = friend['NickName']
+        else:
+            with open('logger.log', 'a', encoding='utf-8') as f:
+                f.write(friend['NickName'] +
+                        '__PYQuanPin:' + friend['PYQuanPin']+'\n')
+            # logging.info(friend['NickName'] +'__PYQuanPin:' + friend['PYQuanPin'])
+    print('如下的用户发送text消息，系统将自动回复：')
+    for user in autoUserNames.values():
+        print('---------------------------------------------')
+        print('--------------{}'.format(user))
+    
+
+itchat.auto_login(loginCallback=get_auto_friends_username,enableCmdQR=True)
 itchat.run()
