@@ -6,8 +6,12 @@
 import time
 from os import path
 from selenium import webdriver
+
+import numpy as np
 from bs4 import BeautifulSoup
+from PIL import Image
 from wordcloud import WordCloud
+
 
 class SongCloudImage(object):
     baseUrl = 'http://music.163.com/#/user/songs/rank?id={}' 
@@ -16,7 +20,7 @@ class SongCloudImage(object):
         self.__url = SongCloudImage.baseUrl.format(user_id)
     
   
-    def show(self,show=True,save=False):
+    def show(self,show=True,save=False,all=True):
 
         driver = webdriver.PhantomJS()
         # 打开链接
@@ -25,7 +29,8 @@ class SongCloudImage(object):
         # 选择iframe
         driver.switch_to.frame("g_iframe")
         # 执行js切换用户所有历史听歌记录
-        driver.execute_script("document.getElementById('songsall').click()")
+        if all:
+            driver.execute_script("document.getElementById('songsall').click()")
         time.sleep(2)
         # 获取页面源码
         html = driver.page_source
@@ -40,19 +45,14 @@ class SongCloudImage(object):
                 songlists.append((song.get('name') + ' ') * song.get('score'))
         d = path.dirname(__file__)
         text = ' '.join(songlists)
-        # print(len(text))
-        wordcloud = WordCloud(font_path=path.join(d, 'STXINGKA.TTF'), max_font_size=60, width=800, height=600, background_color=(255, 255, 255)).generate(text)
+        mask = np.array(Image.open(path.join(d, "heart-mask.jpg")))
+        wordcloud = WordCloud(font_path=path.join(d, 'STXINGKA.TTF'),mask=mask,random_state=30, min_font_size=7, max_font_size=70, width=900, height=900, background_color=(255, 255, 255)).generate(text)
         image = wordcloud.to_image()
         if show:
             image.show()
         if save:
-            image.save('{}.jpg'.format(self.user_id))
+            image.save('{}.png'.format(self.user_id))
 
 if __name__ == '__main__':
-    songCloudImage =  SongCloudImage(474879522)
-    songCloudImage.show()
-
-    
-            
-            
-        
+    songCloudImage =  SongCloudImage(125090772)
+    songCloudImage.show(all=False,save=True)
