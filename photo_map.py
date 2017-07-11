@@ -210,7 +210,7 @@ def get_photo_address(lng, lat):
 
 
 if __name__ == '__main__':
-    result = get_photo_gps('20170710162224.jpg')
+    result = get_photo_gps('show-photo-location-on-map-with-qiniu-and-amap-api.jpg')
     if result:
         address = get_photo_address(result[0], result[1])
         if address:
