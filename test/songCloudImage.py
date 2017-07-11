@@ -46,7 +46,7 @@ class SongCloudImage(object):
         d = path.dirname(__file__)
         text = ' '.join(songlists)
         mask = np.array(Image.open(path.join(d, "heart-mask.jpg")))
-        wordcloud = WordCloud(font_path=path.join(d, 'STXINGKA.TTF'),mask=mask,random_state=30, min_font_size=7, max_font_size=70, width=900, height=900, background_color=(255, 255, 255)).generate(text)
+        wordcloud = WordCloud(font_path=path.join(d, 'STXINGKA.TTF'),mask=mask,random_state=30, min_font_size=8, max_font_size=56, width=900, height=900, background_color=(255, 255, 255)).generate(text)
         image = wordcloud.to_image()
         if show:
             image.show()
@@ -55,4 +55,4 @@ class SongCloudImage(object):
 
 if __name__ == '__main__':
     songCloudImage =  SongCloudImage(125090772)
-    songCloudImage.show(all=False,save=True)
+    songCloudImage.show(all=True,save=True)

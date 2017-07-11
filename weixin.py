@@ -24,7 +24,7 @@ def text_reply(msg):
             str(msg['Text']) + msg.get('Url', '') + "\n"
         f.write(info)
         f.close()
-        logging.info(info)
+        # logging.info(info)
     # itchat.send('%s: %s' % (msg['Type'], msg['Text']), msg['FromUserName'])
 
 # 注册文本信息 回复方法

@@ -1,7 +1,9 @@
 import math
 import os
 from PIL import Image
-
+import json
+import urllib
+import math
 
 class image(object):
     def __init__(self, width=120, height=120):
@@ -14,6 +16,10 @@ class image(object):
             path_str) if os.path.isfile(os.path.join(path_str, x))]
         return images
 
+    def getInfo(self,path_str):
+        i = Image.open(path_str)
+        return i 
+        
     # 拼接合成好友头像
     def make_all_friends_img(self, image_list):
         if image_list is None:
