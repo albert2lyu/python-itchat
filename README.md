@@ -1,6 +1,10 @@
 # python-itchat
 基于[itchat](http://itchat.readthedocs.io/zh/latest) 的python微信个人项目
 
+##### 步骤
+
+项目主要文件是 gif 文件夹 和 weixin.py 下载这两个到本地电脑
+
 1. 安装[pyhton3]( https://www.python.org/downloads/)最新版 安装时请加入到系统环境变量
 
 2. 安装一个第三方库——Python Imaging Library 
