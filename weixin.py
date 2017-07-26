@@ -110,7 +110,7 @@ codes_map = {
 
 
 # 向图灵机器人发送请求 获取结果
-def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='0ee53f65c46a4206a5b049f1eda674c8'):
+def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='d0ee53f65c46a4206a5b049f1eda674c8'):
     res = requests.post(url, json={'key': key, 'userid': userid, 'info': info})
     if res.status_code == 200:
         data = res.json()
