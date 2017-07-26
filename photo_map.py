@@ -212,7 +212,7 @@ def get_photo_address(lng, lat):
 
 
 if __name__ == '__main__':
-    imageName = '20170707134501.jpg'
+    imageName = '20170707134501.jpg' # 当前目录下的图片 必须是相机手机拍摄的图片
     result = get_photo_gps(imageName)
     if result:
         address = get_photo_address(result[0], result[1])
