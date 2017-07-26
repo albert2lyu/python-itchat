@@ -1,4 +1,4 @@
-import math
+
 import os
 from PIL import Image
 import json
@@ -31,10 +31,12 @@ class image(object):
         for y in range(0, n):
             for x in range(0, n):
                 print(x * self.width, y * self.height)
-                fromImage = Image.open(image_list.pop())
-                fromImage = fromImage.resize(
-                    (self.width, self.height), Image.ANTIALIAS)
-                toImage.paste(fromImage, (x * self.width, y * self.height))
+                try:
+                    fromImage = Image.open(image_list.pop())
+                    fromImage = fromImage.resize((self.width, self.height), Image.ANTIALIAS)
+                    toImage.paste(fromImage, (x * self.width, y * self.height))
+                except Exception as e:
+                    pass
                 if len(image_list) == 0:
                     toImage.save('all_friend.jpg')
                     return

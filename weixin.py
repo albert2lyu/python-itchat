@@ -2,42 +2,45 @@ import os
 import time
 import requests
 import logging
+import random
+import math
+from PIL import Image
 import itchat
 from itchat.content import *
+import pymysql
 
-autoDict = {'zhangsongsong': True,  'tiankongzhicheng': True}
+# 设置自动回复的人字典 valus为 True 为自动回复，False 则不自动回复 ,未添加进来的 也不会自动回复
+# key值为好友的昵称的 汉语拼音，如果用户昵称中有其他字符 请登录后 在数据库中查看
+autoDict = {'Caroline': True,  'tiankongzhicheng': True}
 autoUserNames = {}
 
 
 # 通过下面的方式进行简单配置输出方式与日志级别
 logging.basicConfig(filename='logger.log', level=logging.INFO)
 
-# 注册地图 名片 通知 分享信息 回复方法
-
-
+# 注册地图 名片 通知 分享信息 回复方法 
 @itchat.msg_register([MAP, CARD, NOTE, SHARING])
 def text_reply(msg):
-    if autoUserNames.has_key(msg['FromUserName']):
-        f = open('msg.js', 'a')
+    # print(msg) 这里没有自动回复 对信息进行了日志记录
+    if autoUserNames.get(msg['FromUserName']):
         info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + \
             autoUserNames[msg['FromUserName']] + " : " + \
             str(msg['Text']) + msg.get('Url', '') + "\n"
-        f.write(info)
-        f.close()
-        # logging.info(info)
-    # itchat.send('%s: %s' % (msg['Type'], msg['Text']), msg['FromUserName'])
+        with open('msg.info', 'a', encoding='utf-8') as f:
+            f.write(info)
+        # logging.info(info) 
+
 
 # 注册文本信息 回复方法
-
-
 @itchat.msg_register(TEXT)
 def text_reply(msg):
     if autoUserNames.get(msg['FromUserName']):
         info = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) + \
             autoUserNames[msg['FromUserName']] + " : " + \
             str(msg['Text']) + msg.get('Url', '') + "\n"
+        #对信息进行了日志记录 写入了文本
         with open('msg.info', 'a', encoding='utf-8') as f:
-                f.write(info)
+            f.write(info)
         text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
         itchat.send(text, msg['FromUserName'])
 
@@ -45,47 +48,54 @@ def text_reply(msg):
 # 在注册时增加isGroupChat=True将判定为群聊回复
 @itchat.msg_register(TEXT, isGroupChat=True)
 def groupchat_reply(msg):
-    if not msg['IsAt'] and msg['User']['NickName'] == 'hehe':
+    if not msg['IsAt'] :
         # 请求图灵机器人 获取要回复的内容
         text = request_robot(info=msg['Text'], userid=msg['FromUserName'])
         # 发送到群里
         itchat.send(text, msg['FromUserName'])
-        # itchat.send(u'@%s\u2005I received: %s' % (msg['ActualNickName'], msg['Content']), msg['FromUserName'])
 
 
 # 在注册 图片 附件 语音 视频 信息 下载方法
 @itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO])
 def download_files(msg):
-    msg['Text'](msg['FileName'])
-    # file = '@%s@%s' % ({'Picture': 'img', 'Video': 'vid'}.get(
-    #     msg['Type'], 'fil'), msg['FileName'])
-    # itchat.send(file)
+    msg['Text'](msg['FileName']) #下载文件
+    if autoUserNames.get(msg['FromUserName']):
+        fileName = os.path.join('gif', '{}.gif'.format(random.randint(1, 25)))
+        file = '@{}@{}'.format({'Picture': 'img', 'Video': 'vid'}.get(
+            msg['Type'], 'fil'), fileName)
+        if msg['Type'] == 'Picture':
+            itchat.send(file, msg['FromUserName'])
 
 
 # 拼接合成好友头像
 def make_all_friends_img(image_list, width=120, height=120, save_name='all_friend.jpg'):
     images_count = len(image_list)
     n = int(math.ceil(pow(images_count, 0.5)))
-    toImage = Image.new('RGBA', (width * n, height * n))
+    toImage = Image.new('RGBA', (width * n, height * n), (255, 255, 255))
     for y in range(0, n):
         for x in range(0, n):
             print(x * width, y * height)
-            fromImage = Image.open(image_list.pop())
-            fromImage = fromImage.resize((width, height), Image.ANTIALIAS)
-            toImage.paste(fromImage, (x * width, y * height))
+            try:
+                fromImage = Image.open(image_list.pop())
+                fromImage = fromImage.resize((width, height), Image.ANTIALIAS)
+                toImage.paste(fromImage, (x * width, y * height))
+            except Exception as e:
+                print('某头像图片有误')
             if len(image_list) == 0:
                 toImage.save(save_name)
+                print('合成图像success')
                 return
 
 
 # 获取所以好友头像
 def get_all_friends_img(picDir='friends'):
+    images = []
     if not os.path.isdir(picDir):
         os.makedirs(picDir)
     for i, friend in enumerate(itchat.get_friends()):
-        itchat.get_head_img(
-            userName=friend['UserName'], picDir='%s/%d.png' % (picDir, i))
-
+        itchat.get_head_img(userName=friend['UserName'], picDir=os.path.join(picDir, str(i)+'.png'))
+        images.append(os.path.join(picDir, str(i)+'.png'))
+    return images 
 
 codes_map = {
     100000: True,  # '文本类'
@@ -100,7 +110,7 @@ codes_map = {
 
 
 # 向图灵机器人发送请求 获取结果
-def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='d0ee53f65c46a4206a5b049f1eda674c8'):
+def request_robot(info='hello', userid='123456', url='http://www.tuling123.com/openapi/api', key='0ee53f65c46a4206a5b049f1eda674c8'):
     res = requests.post(url, json={'key': key, 'userid': userid, 'info': info})
     if res.status_code == 200:
         data = res.json()
@@ -135,23 +145,54 @@ def response_handle(**kw):
 
 def get_rooms_info():
     for i, friend in enumerate(itchat.get_chatrooms()):
-        logging.info(friend)
+        logging.info(str(friend))
 
+# 添加用户到数据库 这里(host='192.168.10.10',user='homestead',password='secret',db='test',charset='utf8mb4') 请更改为自己的数据库账户密码
+# 建表语句
+#  CREATE TABLE `friends` (
+#   `id` int(11) NOT NULL AUTO_INCREMENT,
+#   `NickName` varchar(255) DEFAULT NULL COMMENT '昵称',
+#   `PYInitial` varchar(255) DEFAULT NULL,
+#   `PYQuanPin` varchar(255) DEFAULT NULL,
+#   `RemarkName` varchar(255) DEFAULT NULL COMMENT '备注',
+#   `RemarkPYInitial` varchar(255) DEFAULT NULL,
+#   `RemarkPYQuanPin` varchar(255) DEFAULT NULL,
+#   `Sex` varchar(255) DEFAULT NULL COMMENT '性别 1 男 2 女',
+#   `Province` varchar(255) DEFAULT NULL COMMENT '省',
+#   `City` varchar(255) DEFAULT NULL COMMENT '城市',
+#   `Signature` varchar(255) DEFAULT NULL COMMENT '个人签名',
+#   PRIMARY KEY (`id`)
+# ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+def add_to_db(**kw):
+    connection = pymysql.connect(host='192.168.10.10',user='homestead',password='secret',db='test',charset='utf8mb4')
+    try:
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO `friends` ( `NickName`, `PYInitial`, `PYQuanPin`, `RemarkName`, `RemarkPYInitial`, `RemarkPYQuanPin` , `Sex`, `Province`, `City`, `Signature`) VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s, %s)"
+            cursor.execute(sql,(kw.get('NickName'),kw.get('PYInitial'),kw.get('PYQuanPin'),kw.get('RemarkName','无'),kw.get('RemarkPYInitial'),kw.get('RemarkPYQuanPin'),kw.get('Sex'),kw.get('Province'),kw.get('City'),kw.get('Signature')))
+            connection.commit()
+    except Exception as e:
+        print(e)
+    finally:
+        connection.close()
 
 def get_auto_friends_username():
     for i, friend in enumerate(itchat.get_friends()):
         if autoDict.get(friend['PYQuanPin']):
             autoUserNames[friend['UserName']] = friend['NickName']
         else:
-            with open('logger.log', 'a', encoding='utf-8') as f:
-                f.write(friend['NickName'] +
-                        '__PYQuanPin:' + friend['PYQuanPin']+'\n')
-            # logging.info(friend['NickName'] +'__PYQuanPin:' + friend['PYQuanPin'])
+            pass
+            # with open('friends_base.info', 'a', encoding='utf-8') as f:
+            #     f.write('昵称:' + friend['NickName'] +  '  备注: ' + (friend['RemarkName'] == '' ? '无': friend['RemarkName']) + ' 性别:' + str(friend['Sex']) + ' 区域: '+ friend['Province'] + friend['City'] + ' 签名:' +friend['Signature'] +  '\n')
+        add_to_db(**friend) # 添加用户信息到MySQL数据库friends表中
     print('如下的用户发送text消息，系统将自动回复：')
     for user in autoUserNames.values():
         print('---------------------------------------------')
         print('--------------{}'.format(user))
-    
+    images = get_all_friends_img()
+    # images.reverse()
+    make_all_friends_img(images)
+    itchat.send('@img@{}'.format('all_friend.jpg'))#登录时将会把所有好友头像合照发送给登录账户
 
-itchat.auto_login(loginCallback=get_auto_friends_username,enableCmdQR=True)
+
+itchat.auto_login(loginCallback=get_auto_friends_username, enableCmdQR=False)
 itchat.run()

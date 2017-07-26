@@ -9,7 +9,7 @@ import os.path
 class HuabanCrawler():
 
     def __init__(self):
-        self.homeUrl = "http://huaban.com/boards/24116838/"
+        self.homeUrl = "http://huaban.com/boards/17375733/"
         self.images = []
         if not os.path.exists('G:/images'):
             os.mkdir('G:/images')
@@ -18,7 +18,7 @@ class HuabanCrawler():
         return requests.get(url=self.homeUrl).content
 
     def __make_ajax_url(self, No):
-        return self.homeUrl + "?j4giskbt&max=" + No + "&limit=20&wfl=1"
+        return self.homeUrl + "?j527r6n1&max=" + No + "&limit=20&wfl=1"
 
     def __load_more(self, maxNo):
         return requests.get(url=self.__make_ajax_url(maxNo)).content
@@ -70,6 +70,6 @@ class HuabanCrawler():
 
 if __name__ == '__main__':
     hc = HuabanCrawler()
-    hc.get_image_info(200)
+    hc.get_image_info(90)
     hc.down_images()
 

@@ -187,7 +187,9 @@ def get_photo_gps(image_path):
             gps_e = gps_info.get(4)
             x, y, z = gps_e
             lng = x[0] / x[1] + y[0] / y[1] / 60 + z[0] / z[1] / 3600
+            print( lng, lat)
             result = wgs84_to_gcj02(lng, lat)
+            print(result)
             result.append(DateTimeOriginal)
             result.append(DateTime)
             return result
@@ -210,7 +212,8 @@ def get_photo_address(lng, lat):
 
 
 if __name__ == '__main__':
-    result = get_photo_gps('show-photo-location-on-map-with-qiniu-and-amap-api.jpg')
+    imageName = '20170707134501.jpg'
+    result = get_photo_gps(imageName)
     if result:
         address = get_photo_address(result[0], result[1])
         if address:
