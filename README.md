@@ -4,12 +4,22 @@
 1. 安装[pyhton3]( https://www.python.org/downloads/)最新版 安装时请加入到系统环境变量
 
 2. 安装一个第三方库——Python Imaging Library 
+
    ```pip install Pillow```
+
 3. 安装一个pymysql
+
    ```pip install pymysql```
+
 4. 安装 [itchat](http://itchat.readthedocs.io/zh/latest) 库 
+
    ```pip install itchat```
-5. 修改数据库配置 weixin.py 167行 改为自己的 执行建表语句
+
+5. 修改 weixin.py 113行key  请自行到图灵机器人官网申请key
+
+   网址 http://www.tuling123.com
+
+6. 修改数据库配置 weixin.py 167行 改为自己的 执行建表语句
 
 ```
 
@@ -29,7 +39,7 @@
  ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 ```
-6. 到当前目录执行 
+7. 到当前目录命令行执行 
    ``` python weixin.py ```
    手机微信扫描登录
 
